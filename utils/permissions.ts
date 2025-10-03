@@ -1,5 +1,4 @@
-import { Platform } from 'react-native';
-import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
+import * as ImagePicker from 'expo-image-picker';
 
 /**
  * Request camera permission for the current platform
@@ -7,13 +6,19 @@ import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
  */
 export const requestCameraPermission = async (): Promise<boolean> => {
   try {
-    const permission = Platform.OS === 'ios'
-      ? PERMISSIONS.IOS.CAMERA
-      : PERMISSIONS.ANDROID.CAMERA;
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
 
-    const result = await request(permission);
+    if (status === 'granted') {
+      return true;
+    }
 
-    return result === RESULTS.GRANTED;
+    // On Android, we might need media library permission too for camera
+    if (status === 'denied') {
+      console.log('Camera permission denied');
+      return false;
+    }
+
+    return false;
   } catch (error) {
     console.error('Error requesting camera permission:', error);
     return false;
@@ -26,13 +31,8 @@ export const requestCameraPermission = async (): Promise<boolean> => {
  */
 export const checkCameraPermission = async (): Promise<boolean> => {
   try {
-    const permission = Platform.OS === 'ios'
-      ? PERMISSIONS.IOS.CAMERA
-      : PERMISSIONS.ANDROID.CAMERA;
-
-    const result = await request(permission);
-
-    return result === RESULTS.GRANTED;
+    const { status } = await ImagePicker.getCameraPermissionsAsync();
+    return status === 'granted';
   } catch (error) {
     console.error('Error checking camera permission:', error);
     return false;
